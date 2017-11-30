@@ -3,31 +3,39 @@
 #include "game.h"
 
 int main(int argc, char *argv[]) {
-  int err=0;
+  int err;
   SDL_Window *window;
-  SDL_Surface *surface;
+  SDL_Renderer *renderer;
 
-  GameState *game_state;
+  GameState game_state;
 
+  /* Start SDL subsystems */
   if ((err = SDL_Init (SDL_INIT_VIDEO)) < 0) {
     printf("Failed to initialize SDL\n");
-  } else {
-    window = SDL_CreateWindow("Space Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 640, 360, SDL_WINDOW_SHOWN);
-    if (window == NULL) {
-      printf("Failed to create a window. %s\n", SDL_GetError());
-      err = EXIT_FAILURE;
-    } else {
-      surface = SDL_GetWindowSurface(window);
-    }
+    return err;
   }
 
-  if (err != 0)
-    return err;
+  /* Open a window */
+  window = SDL_CreateWindow("Space Game",
+      SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
+      640, 360, SDL_WINDOW_SHOWN);
+  if (window == NULL) {
+    printf("Failed to create a window. %s\n", SDL_GetError());
+    return EXIT_FAILURE;
+  }
 
-  while (update_game(game_state)) {
-    SDL_FillRect(surface, NULL, 0);
-    draw_game(game_state, surface);
-    SDL_UpdateWindowSurface(window);
+  /* Get a rendering context thingy for the window */
+  renderer = SDL_CreateRenderer(window, -1,
+      SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+  if (renderer == NULL) {
+    printf("Failed to create a renderer. %s\n", SDL_GetError());
+    return EXIT_FAILURE;
+  }
+
+  while (update_game(&game_state)) {
+    SDL_RenderClear(renderer); /* Clear the window */
+    draw_game(&game_state, renderer);
+    SDL_RenderPresent(renderer); /* vsync/update */
   }
 
   return 0;

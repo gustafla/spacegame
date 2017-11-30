@@ -1,7 +1,7 @@
 TARGET = spacegame
 LIBS = -lSDL2
 CC = gcc
-CFLAGS = -g -Wall
+CFLAGS = -g -Wall -std=c89
 
 .PHONY: default all clean
 
