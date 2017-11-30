@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
   SDL_Window *window;
   SDL_Renderer *renderer;
 
-  GameState game_state;
+  GameState *game_state;
 
   /* Start SDL subsystems */
   if ((err = SDL_Init (SDL_INIT_VIDEO)) < 0) {
@@ -32,11 +32,13 @@ int main(int argc, char *argv[]) {
     return EXIT_FAILURE;
   }
 
-  while (update_game(&game_state)) {
+  game_state = game_init();
+  while (game_update(game_state)) {
     SDL_RenderClear(renderer); /* Clear the window */
-    draw_game(&game_state, renderer);
+    game_draw(game_state, renderer);
     SDL_RenderPresent(renderer); /* vsync/update */
   }
+  game_deinit(game_state);
 
   return 0;
 }
