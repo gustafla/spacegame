@@ -1,17 +1,50 @@
 #include "game.h"
+#include "particle.h"
 
-GameState *game_init() {
+#define PRESSED(x)  state->input[x].state
+#define player_x    state->player->position.x
+#define player_y    state->player->position.y
+
+GameState *game_init(int w, int h) {
   GameState *state = malloc(sizeof(GameState));
+  
+  /* initialize input */
   state->input = input_init();
+
+  /* store screen size */
+  state->size.x = w;
+  state->size.y = h;
+
+  /* construct the player entity */
+  state->player = entity_init(w/2, h-20, 255, 255, 255, 3);
+  state->player->geometry[0].x = -3;
+  state->player->geometry[0].y = 2;
+  state->player->geometry[1].x = 0;
+  state->player->geometry[1].y = -2;
+  state->player->geometry[2].x = 3;
+  state->player->geometry[2].y = 2;
+
+  /* player projectiles head node */
+  state->player_projectiles = malloc(sizeof(LinkedNode));
+  state->player_projectiles->next = NULL;
+  state->player_projectiles->element = NULL;
+
   return state;
 }
 
 void game_deinit(GameState *state) {
   free(state->input);
+  free(state->player_projectiles);
+  entity_deinit(state->player);
   free(state);
 }
 
 int game_update(GameState *state) {
+  static int player_speed = 2;
+  static int projectile_speed = 6;
+  Particle *projectile;
+  LinkedNode *node;
+
   /* Poll events and return stop if SDL_QUIT */
   SDL_PollEvent(&state->event);
   if (state->event.type == SDL_QUIT) {
@@ -20,16 +53,50 @@ int game_update(GameState *state) {
 
   /* Check game input and return stop if BUTTON_EXIT is pressed */
   input_update(state->input, &state->event);
-  if (state->input[BUTTON_EXIT].state) {
+  if (PRESSED(BUTTON_EXIT)) {
     return 0;
+  }
+
+  /* Process input actions */
+  if (PRESSED(BUTTON_LEFT)) {
+    state->player->position.x -= player_speed;
+  }
+
+  if (PRESSED(BUTTON_RIGHT)) {
+    state->player->position.x += player_speed;
+  }
+
+  if (PRESSED(BUTTON_A)) {
+    projectile = particle_init(player_x, player_y, 0, -projectile_speed);
+    linked_list_add(state->player_projectiles, (void*)projectile);
+  }
+
+  /* Update player projectiles */
+  node = state->player_projectiles;
+  while (node->next != NULL) {
+    if (node->element != NULL) {
+      projectile = (Particle*)node->element;
+      particle_update(projectile);
+    }
   }
 
   return 1;
 }
 
 void game_draw(GameState *state, SDL_Renderer *renderer) {
-  SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
-  SDL_RenderDrawLine(renderer, 100, 100, 200, 200);
+  Particle *projectile;
+  LinkedNode *node;
+
+  entity_draw(state->player, renderer);
+
+  /* Draw player projectiles */
+  node = state->player_projectiles;
+  while (node->next != NULL) {
+    if (node->element != NULL) {
+      projectile = (Particle*)node->element;
+      entity_draw(projectile->entity, renderer);
+    }
+  }
 
   /* Leave a BG color for next clear */
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
