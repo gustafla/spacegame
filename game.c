@@ -72,11 +72,16 @@ int game_update(GameState *state) {
   }
 
   /* Update player projectiles */
-  node = state->player_projectiles;
-  while (node->next != NULL) {
-    if (node->element != NULL) {
+  for (node = state->player_projectiles; node->next != NULL; node = node->next)
+  {
+    if (node->element != NULL) { /* If contains a particle */
       projectile = (Particle*)node->element;
-      particle_update(projectile);
+      particle_update(projectile); /* update it's postition */
+      if (projectile->entity->position.y < 0) { /* if gone OOB */
+        particle_deinit(projectile); /* delete from memory */
+        node = linked_list_remove(&state->player_projectiles, node);
+        /* remove it's node and correct the current pointer */
+      }
     }
   }
 
@@ -90,8 +95,8 @@ void game_draw(GameState *state, SDL_Renderer *renderer) {
   entity_draw(state->player, renderer);
 
   /* Draw player projectiles */
-  node = state->player_projectiles;
-  while (node->next != NULL) {
+  for (node = state->player_projectiles; node->next != NULL; node = node->next)
+  {
     if (node->element != NULL) {
       projectile = (Particle*)node->element;
       entity_draw(projectile->entity, renderer);

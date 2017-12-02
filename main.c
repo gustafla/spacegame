@@ -4,7 +4,6 @@
 
 int main(int argc, char *argv[]) {
   int err, w, h;
-  long time, time_last, time_delta;
   SDL_Window *window;
   SDL_Renderer *renderer;
 

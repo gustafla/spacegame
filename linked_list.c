@@ -19,8 +19,9 @@ void linked_list_add(LinkedNode *list, void *element) {
   current->next = new;
 }
 
-/* Only call remove on pre-freed nodes */
-void linked_list_remove(LinkedNode **list, LinkedNode *node) {
+/* Only call remove on pre-freed (element) nodes */
+/* Returns previous from found (for continuing iteration) */
+LinkedNode *linked_list_remove(LinkedNode **list, LinkedNode *node) {
   LinkedNode *current, *found;
 
   if (node == *list) { /* If we need to remove the first node */
@@ -33,6 +34,9 @@ void linked_list_remove(LinkedNode **list, LinkedNode *node) {
     if (current->next != NULL) {  /* If node was found, set the previous */
       found = current->next;      /* node's pointer to the next of the node */
       current->next = found->next;
+      free(found);
+      return current;
     }
   }
+  return NULL;
 }
