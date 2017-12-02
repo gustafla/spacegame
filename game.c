@@ -1,9 +1,16 @@
 #include "game.h"
 #include "particle.h"
 
-#define PRESSED(x)  state->input[x].state
-#define player_x    state->player->position.x
-#define player_y    state->player->position.y
+#define pressed(x)    state->input[x].state
+#define player_x      state->player->position.x
+#define player_y      state->player->position.y
+
+int entity_oob(GameState *state, Entity *entity) {
+  return entity->position.x < 0 ||
+    entity->position.x > state->size.x ||
+    entity->position.y < 0 ||
+    entity->position.y > state->size.y;
+}
 
 GameState *game_init(int w, int h) {
   GameState *state = malloc(sizeof(GameState));
@@ -53,20 +60,20 @@ int game_update(GameState *state) {
 
   /* Check game input and return stop if BUTTON_EXIT is pressed */
   input_update(state->input, &state->event);
-  if (PRESSED(BUTTON_EXIT)) {
+  if (pressed(BUTTON_EXIT)) {
     return 0;
   }
 
   /* Process input actions */
-  if (PRESSED(BUTTON_LEFT)) {
+  if (pressed(BUTTON_LEFT)) {
     state->player->position.x -= player_speed;
   }
 
-  if (PRESSED(BUTTON_RIGHT)) {
+  if (pressed(BUTTON_RIGHT)) {
     state->player->position.x += player_speed;
   }
 
-  if (PRESSED(BUTTON_A)) {
+  if (pressed(BUTTON_A)) {
     projectile = particle_init(player_x, player_y, 0, -projectile_speed);
     linked_list_add(state->player_projectiles, (void*)projectile);
   }
@@ -77,7 +84,7 @@ int game_update(GameState *state) {
     if (node->element != NULL) { /* If contains a particle */
       projectile = (Particle*)node->element;
       particle_update(projectile); /* update it's postition */
-      if (projectile->entity->position.y < 0) { /* if gone OOB */
+      if (entity_oob(state, projectile->entity)) { /* if gone OOB */
         particle_deinit(projectile); /* delete from memory */
         node = linked_list_remove(&state->player_projectiles, node);
         /* remove it's node and correct the current pointer */
