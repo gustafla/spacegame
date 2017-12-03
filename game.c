@@ -40,8 +40,13 @@ void game_deinit(GameState *state) {
 }
 
 int game_update(GameState *state) {
+  /* Game logic variables */
   static int player_speed = 2;
   static int projectile_speed = 6;
+  static int player_shoot_delay = 8;
+  static int player_shoot_cldn = 0;
+
+  /* Temporary variables */
   Particle *projectile;
   LinkedNode *node;
 
@@ -66,9 +71,13 @@ int game_update(GameState *state) {
     state->player->position.x += player_speed;
   }
 
-  if (pressed(BUTTON_A)) {
+  if (pressed(BUTTON_A) && player_shoot_cldn <= 0) {
     projectile = particle_init(player_x, player_y, 0, -projectile_speed);
     linked_list_add(state->player_projectiles, (void*)projectile);
+    player_shoot_cldn = player_shoot_delay;
+  }
+  if (player_shoot_cldn) { /* if cooldown frames, decrease cooldown counter */
+    player_shoot_cldn--;
   }
 
   /* Update player projectiles */
