@@ -1,5 +1,5 @@
 TARGET = spacegame
-LIBS = -lSDL2
+LIBS = -lSDL2 -lm
 CC = gcc
 CFLAGS = -g -Wall -std=c89
 

@@ -1,9 +1,10 @@
 #include "particle.h"
 
-Particle *particle_init(int x, int y, int speed_x, int speed_y) {
+Particle *particle_init(int x, int y, int speed_x, int speed_y,
+    Vec3 const *color) {
   Particle *particle = malloc(sizeof(Particle));
 
-  particle->entity = entity_init(x, y, 200, 180, 160, 0);
+  particle->entity = entity_init(x, y, color->x, color->y, color->z, 0);
   particle->speed.x = speed_x;
   particle->speed.y = speed_y;
 
