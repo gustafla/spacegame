@@ -5,16 +5,9 @@
 #define player_x      state->player->position.x
 #define player_y      state->player->position.y
 
-int entity_oob(GameState *state, Entity *entity) {
-  return entity->position.x < 0 ||
-    entity->position.x > state->size.x ||
-    entity->position.y < 0 ||
-    entity->position.y > state->size.y;
-}
-
 GameState *game_init(int w, int h) {
   GameState *state = malloc(sizeof(GameState));
-  
+
   /* initialize input */
   state->input = input_init();
 
@@ -65,11 +58,11 @@ int game_update(GameState *state) {
   }
 
   /* Process input actions */
-  if (pressed(BUTTON_LEFT)) {
+  if (pressed(BUTTON_LEFT) && state->player->position.x > 0) {
     state->player->position.x -= player_speed;
   }
 
-  if (pressed(BUTTON_RIGHT)) {
+  if (pressed(BUTTON_RIGHT) && state->player->position.x < state->size.x) {
     state->player->position.x += player_speed;
   }
 
@@ -79,12 +72,12 @@ int game_update(GameState *state) {
   }
 
   /* Update player projectiles */
-  for (node = state->player_projectiles; node->next != NULL; node = node->next)
-  {
+  for (node = state->player_projectiles; node != NULL; node = node->next) {
     if (node->element != NULL) { /* If contains a particle */
       projectile = (Particle*)node->element;
       particle_update(projectile); /* update it's postition */
-      if (entity_oob(state, projectile->entity)) { /* if gone OOB */
+      /* if OOB */
+      if (entity_oob(projectile->entity, state->size.x, state->size.y)) {
         particle_deinit(projectile); /* delete from memory */
         node = linked_list_remove(&state->player_projectiles, node);
         /* remove it's node and correct the current pointer */
@@ -102,8 +95,7 @@ void game_draw(GameState *state, SDL_Renderer *renderer) {
   entity_draw(state->player, renderer);
 
   /* Draw player projectiles */
-  for (node = state->player_projectiles; node->next != NULL; node = node->next)
-  {
+  for (node = state->player_projectiles; node != NULL; node = node->next) {
     if (node->element != NULL) {
       projectile = (Particle*)node->element;
       entity_draw(projectile->entity, renderer);

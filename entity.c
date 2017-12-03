@@ -45,3 +45,10 @@ void entity_draw(Entity *entity, SDL_Renderer *renderer) {
     }
   }
 }
+
+int entity_oob(Entity *entity, int x, int y) {
+  return entity->position.x < 0 ||
+    entity->position.x > x ||
+    entity->position.y < 0 ||
+    entity->position.y > y;
+}
